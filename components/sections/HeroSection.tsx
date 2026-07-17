@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { FadeIn } from '@/components/FadeIn';
 import { ContactButton } from '@/components/Buttons';
 import { Hero3D } from '@/components/Hero3D';
+import { Magnet } from '@/components/Magnet';
 
 export function HeroSection() {
   return (
@@ -62,58 +62,42 @@ export function HeroSection() {
       </FadeIn>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center relative w-full">
+      <div className="flex-1 flex flex-col items-center relative w-full">
         {/* 3D Background Element */}
         <Hero3D />
 
-        {/* Greeting character */}
-        <FadeIn delay={0.1} y={20} className="relative z-10 mb-4 sm:mb-6">
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            className="relative w-fit"
-          >
-            {/* Speech bubble */}
-            <motion.div
-              animate={{ scale: [1, 1.08, 1] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-              className="absolute top-1 left-[82%] z-10 whitespace-nowrap"
-            >
-              <div className="rounded-full border-2 border-[#B600A8]/60 bg-[#18011F]/90 px-4 py-1.5 shadow-[0_0_20px_rgba(182,0,168,0.4)]">
-                <span className="text-xs sm:text-sm font-medium uppercase tracking-[0.25em] text-[#D7E2EA]">
-                  hii!
-                </span>
-              </div>
-              <div className="absolute -bottom-[6px] left-3 h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-[#B600A8]/60 bg-[#18011F]" />
-            </motion.div>
-
-            {/* Character */}
-            <motion.div
-              animate={{ rotate: [-1.5, 1.5, -1.5] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Image
-                src="/avatar.png"
-                alt="Sakthi's avatar saying hii"
-                width={811}
-                height={1023}
-                priority
-                className="drop-shadow-[0_0_30px_rgba(182,0,168,0.3)]"
-                style={{ height: 'clamp(150px, 24vh, 230px)', width: 'auto' }}
-              />
-            </motion.div>
-          </motion.div>
-        </FadeIn>
-
         {/* Hero Heading */}
-        <FadeIn delay={0.15} y={40} className="relative z-10 w-full text-center px-4">
-          <h1 className="hero-heading font-black uppercase tracking-tight leading-none text-[clamp(2.5rem,10vw,180px)]">
+        <FadeIn delay={0.15} y={40} className="relative z-0 w-full text-center px-4 mt-6 sm:mt-4">
+          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[clamp(2.5rem,10vw,180px)]">
             Hi, i&apos;m Sakthi
           </h1>
         </FadeIn>
 
+        {/* Hero Portrait */}
+        <FadeIn
+          delay={0.6}
+          y={30}
+          className="absolute left-1/2 -translate-x-1/2 z-10 top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0"
+        >
+          <Magnet
+            padding={150}
+            strength={3}
+            activeTransition="transform 0.3s ease-out"
+            inactiveTransition="transform 0.6s ease-in-out"
+          >
+            <Image
+              src="/avatar.png"
+              alt="Sakthi's 3D avatar"
+              width={811}
+              height={1023}
+              priority
+              className="w-[340px] sm:w-[340px] md:w-[330px] lg:w-[360px] h-auto select-none pointer-events-none drop-shadow-[0_0_40px_rgba(182,0,168,0.25)]"
+            />
+          </Magnet>
+        </FadeIn>
+
         {/* Bottom Section */}
-        <div className="absolute bottom-0 w-full left-0 right-0">
+        <div className="absolute bottom-0 w-full left-0 right-0 z-20">
           <FadeIn delay={0.35} y={20} className="w-full" as="div">
             <div className="flex justify-between items-end px-6 md:px-10 pb-7 sm:pb-8 md:pb-10">
               <p

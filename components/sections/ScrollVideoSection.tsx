@@ -7,13 +7,13 @@ import NextImage from 'next/image';
 const MOBILE_BREAKPOINT = 768;
 
 // Desktop frame sequence
-const DESKTOP_FRAMES = { basePath: '/hero-scroll', count: 250 };
+const DESKTOP_FRAMES = { basePath: '/hero-scroll', count: 125 };
 // Mobile-only frame sequence — drop frames into public/hero-scroll-mobile/
-// as frame-001.jpg, frame-002.jpg, ... and update count to match.
-const MOBILE_FRAMES = { basePath: '/hero-scroll-mobile', count: 270 };
+// as frame-001.webp, frame-002.webp, ... and update count to match.
+const MOBILE_FRAMES = { basePath: '/hero-scroll-mobile', count: 135 };
 
 const getFrameSrc = (basePath: string, index: number) =>
-  `${basePath}/frame-${String(index + 1).padStart(3, '0')}.jpg`;
+  `${basePath}/frame-${String(index + 1).padStart(3, '0')}.webp`;
 
 function FrameSequenceCanvas({
   basePath,
@@ -168,7 +168,7 @@ function FrameSequenceCanvas({
   });
 
   return (
-    <section ref={containerRef} className="relative bg-[#0C0C0C]" style={{ height: '600vh' }}>
+    <section ref={containerRef} className="relative bg-[#0C0C0C]" style={{ height: '350vh' }}>
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
@@ -215,7 +215,7 @@ function StaticFallback() {
   return (
     <section className="relative h-screen w-full overflow-hidden bg-[#0C0C0C]">
       <NextImage
-        src="/hero-scroll/frame-125.jpg"
+        src="/hero-scroll/frame-063.webp"
         alt="Sakthi Sundaram R"
         fill
         priority
