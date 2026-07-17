@@ -91,7 +91,7 @@ export function HeroSection() {
               width={811}
               height={1023}
               priority
-              className="w-[340px] sm:w-[340px] md:w-[330px] lg:w-[360px] h-auto select-none pointer-events-none drop-shadow-[0_0_40px_rgba(182,0,168,0.25)]"
+              className="w-[340px] sm:w-[360px] md:w-[380px] lg:w-[430px] h-auto select-none pointer-events-none drop-shadow-[0_0_40px_rgba(182,0,168,0.25)]"
             />
           </Magnet>
         </FadeIn>
