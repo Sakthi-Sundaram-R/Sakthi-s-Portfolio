@@ -189,3 +189,110 @@
 main {
   overflow-x: clip;
 }
+
+/* ---------- Custom cursor ---------- */
+@media (pointer: fine) {
+  html.has-custom-cursor,
+  html.has-custom-cursor * {
+    cursor: none !important;
+  }
+  /* keep the text caret affordance on form fields */
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea,
+  html.has-custom-cursor select {
+    cursor: auto !important;
+  }
+}
+
+.cc-root {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+.cc-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffffff, #ff4fd8 55%, #b600a8);
+  box-shadow:
+    0 0 10px rgba(255, 79, 216, 0.8),
+    0 0 24px rgba(122, 92, 255, 0.45);
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 0.25s ease, scale 0.3s ease;
+  animation: cc-hue 4s ease-in-out infinite alternate;
+}
+
+.cc-dot.cc-hover {
+  scale: 1.4;
+}
+
+.cc-ring-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 0.25s ease;
+  animation: cc-ring-hue 4s ease-in-out infinite alternate;
+}
+
+.cc-dot.cc-visible,
+.cc-ring-wrap.cc-visible {
+  opacity: 1;
+}
+
+.cc-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ff2ecc,
+    #b600a8,
+    #7a5cff,
+    #38beff,
+    #7df3ff,
+    #ff2ecc
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  animation: cc-spin 3s linear infinite;
+  transition: scale 0.3s ease;
+}
+
+.cc-ring-wrap.cc-hover .cc-ring {
+  scale: 1.5;
+}
+
+@keyframes cc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Slow sweep between magenta, violet, and azure so the colors stay in the theme family */
+@keyframes cc-hue {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(-110deg);
+  }
+}
+
+@keyframes cc-ring-hue {
+  from {
+    filter: drop-shadow(0 0 6px rgba(255, 46, 204, 0.5)) hue-rotate(0deg);
+  }
+  to {
+    filter: drop-shadow(0 0 6px rgba(255, 46, 204, 0.5)) hue-rotate(-110deg);
+  }
+}

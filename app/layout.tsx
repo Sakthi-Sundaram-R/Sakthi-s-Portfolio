@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Kanit } from 'next/font/google'
+import { CustomCursor } from '@/components/CustomCursor'
 import './globals.css'
 
 const kanit = Kanit({
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="en" className={`${kanit.variable} bg-[#0C0C0C]`}>
       <body className="font-kanit antialiased" style={{ fontFamily: 'var(--font-kanit)' }}>
         {children}
+        <CustomCursor />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
