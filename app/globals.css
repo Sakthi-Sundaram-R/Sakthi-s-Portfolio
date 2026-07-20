@@ -218,7 +218,7 @@ main {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffffff, #ff4fd8 55%, #b600a8);
+  background: radial-gradient(circle at 30% 30%, #ffffff, #ff4fd8 55%, #29c5f6);
   box-shadow:
     0 0 10px rgba(255, 79, 216, 0.8),
     0 0 24px rgba(122, 92, 255, 0.45);
@@ -256,7 +256,7 @@ main {
   background: conic-gradient(
     from 0deg,
     #ff2ecc,
-    #b600a8,
+    #29c5f6,
     #7a5cff,
     #38beff,
     #7df3ff,
@@ -295,4 +295,298 @@ main {
   to {
     filter: drop-shadow(0 0 6px rgba(255, 46, 204, 0.5)) hue-rotate(-110deg);
   }
+}
+
+/* ============================================================
+   Certifications — cinematic 3D gallery
+   Scoped to .cert-* / .gallery-* so the site theme is untouched.
+   ============================================================ */
+
+.cert-gallery-section {
+  position: relative;
+  background: #0C0C0C;
+  color: #d7e2ea;
+}
+
+/* Desktop: the viewport-sized stage that stays put while the section scrolls */
+.cert-gallery-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cert-gallery-section--mobile {
+  padding: 72px 20px 80px;
+}
+
+/* --- Heading --- */
+.cert-gallery-header {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+  width: 100%;
+}
+
+.cert-gallery-section--mobile .cert-gallery-header {
+  position: static;
+  transform: none;
+  margin-bottom: 40px;
+}
+
+/* The carousel has its own "swipe to explore" hint below it */
+.cert-gallery-section--mobile .section-subtitle {
+  display: none;
+}
+
+/* Sized to sit alongside the other section headings without crowding the 3D stage */
+.cert-gallery-header h2 {
+  font-size: clamp(2rem, 8.5vw, 140px);
+}
+
+.cert-gallery-header .section-subtitle {
+  font-size: 13px;
+  color: rgba(215, 226, 234, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-top: 12px;
+}
+
+/* --- Floating label attached to each frame --- */
+.cert-label {
+  background: rgba(12, 12, 12, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(215, 226, 234, 0.3);
+  border-radius: 14px;
+  padding: 16px 20px;
+  min-width: 260px;
+  text-align: center;
+  color: #d7e2ea;
+  transition: opacity 0.5s ease, transform 0.4s ease;
+}
+
+.cert-label-type {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: #29c5f6;
+  text-transform: uppercase;
+  font-family: var(--font-kanit), 'Kanit', sans-serif;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.cert-label-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #d7e2ea;
+}
+
+.cert-label-issuer {
+  font-size: 12px;
+  color: #d7e2ea;
+  margin-bottom: 4px;
+}
+
+.cert-label-date {
+  font-size: 11px;
+  color: rgba(215, 226, 234, 0.5);
+  font-family: var(--font-kanit), 'Kanit', sans-serif;
+  margin-bottom: 12px;
+}
+
+.cert-label-rank {
+  display: block;
+  font-size: 13px;
+  color: #29c5f6;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.cert-label-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.cert-label-buttons button,
+.cert-label-buttons a {
+  background: rgba(215, 226, 234, 0.15);
+  border: 1px solid rgba(215, 226, 234, 0.3);
+  color: #d7e2ea;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.cert-label-buttons button:hover,
+.cert-label-buttons a:hover {
+  background: rgba(215, 226, 234, 0.3);
+}
+
+/* --- Progress dots --- */
+.gallery-progress {
+  position: absolute;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.gallery-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(215, 226, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.gallery-dot.active {
+  background: #29c5f6;
+  box-shadow: 0 0 8px #29c5f6;
+  transform: scale(1.5);
+}
+
+/* --- Scroll hint --- */
+.gallery-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: rgba(215, 226, 234, 0.6);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-family: var(--font-kanit), 'Kanit', sans-serif;
+  animation: fadeHint 2s ease-in-out infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes fadeHint {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+/* --- Mobile card stack --- */
+/* Horizontal snap carousel — one certificate per swipe */
+.cert-mobile-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Bleed to the section edges so cards can sit flush while scrolling */
+  margin: 0 -20px;
+  padding: 4px 20px 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.cert-mobile-track::-webkit-scrollbar {
+  display: none;
+}
+
+.cert-mobile-card {
+  flex: 0 0 85%;
+  scroll-snap-align: center;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(215, 226, 234, 0.25);
+  border-radius: 18px;
+  padding: 16px;
+  text-align: center;
+}
+
+.cert-mobile-hint {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(215, 226, 234, 0.45);
+}
+
+.cert-mobile-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(215, 226, 234, 0.2);
+  cursor: pointer;
+}
+
+/* --- Lightbox --- */
+.cert-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(12, 12, 12, 0.94);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.cert-lightbox-inner {
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+}
+
+.cert-lightbox-image {
+  position: relative;
+  width: 100%;
+  height: min(70vh, 620px);
+  margin-bottom: 20px;
+}
+
+.cert-lightbox-meta {
+  border-top: 1px solid rgba(215, 226, 234, 0.25);
+  padding-top: 16px;
+}
+
+.cert-lightbox-detail {
+  font-size: 12px;
+  color: rgba(215, 226, 234, 0.6);
+  margin-top: 8px;
+}
+
+.cert-lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: rgba(215, 226, 234, 0.15);
+  border: 1px solid rgba(215, 226, 234, 0.3);
+  color: #d7e2ea;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
 }

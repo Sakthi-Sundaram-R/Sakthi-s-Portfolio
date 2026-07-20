@@ -8,7 +8,7 @@ import { EducationSection } from '@/components/sections/EducationSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
 import { ExperienceSection } from '@/components/sections/ExperienceSection';
 import { ProjectsSection } from '@/components/sections/ProjectsSection';
-import { CertificationsSection } from '@/components/sections/CertificationsSection';
+import { CertificationsSection } from '@/components/Certifications';
 import { FooterSection } from '@/components/sections/FooterSection';
 
 export default function Home() {
