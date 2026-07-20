@@ -19,11 +19,27 @@ const status = [
   },
 ];
 
-const responsibilities = [
-  'Developed machine learning applications and predictive models using Python.',
-  'Worked on data preprocessing, feature engineering, model training, and performance evaluation.',
-  'Built classification and prediction models using Scikit-learn, Pandas, and TensorFlow.',
-  'Collaborated under industry mentors while gaining practical experience in real-world AI and data science workflows.',
+const internships = [
+  {
+    role: 'Full Stack Development Intern',
+    company: 'QAROO India Pvt. Ltd.',
+    period: 'June 2026',
+    points: [
+      'Completed a three-week internship in full-stack development (01–20 June 2026) at QAROO India Pvt. Ltd., Coimbatore.',
+      'Gained hands-on exposure to end-to-end web development across both front-end and back-end.',
+    ],
+  },
+  {
+    role: 'Machine Learning Intern',
+    company: 'Eron Techno Solutions Pvt. Ltd.',
+    period: 'May 2026',
+    points: [
+      'Developed machine learning applications and predictive models using Python.',
+      'Worked on data preprocessing, feature engineering, model training, and performance evaluation.',
+      'Built classification and prediction models using Scikit-learn, Pandas, and TensorFlow.',
+      'Collaborated under industry mentors while gaining practical experience in real-world AI and data science workflows.',
+    ],
+  },
 ];
 
 export function ExperienceSection() {
@@ -58,24 +74,36 @@ export function ExperienceSection() {
           ))}
         </div>
 
-        {/* Internship */}
-        <FadeIn delay={0.2} y={20} className="border-2 border-[#D7E2EA]/20 rounded-3xl p-6 sm:p-8 md:p-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-6">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-medium">Machine Learning Intern</h3>
-              <p className="text-sm sm:text-base text-[#D7E2EA]/60">Eron Techno Solutions Pvt. Ltd.</p>
+        {/* Internships, most recent first */}
+        {internships.map((job, idx) => (
+          <FadeIn
+            key={job.company}
+            delay={0.2 + idx * 0.1}
+            y={20}
+            className="border-2 border-[#D7E2EA]/20 rounded-3xl p-6 sm:p-8 md:p-10"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-6">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-medium">{job.role}</h3>
+                <p className="text-sm sm:text-base text-[#D7E2EA]/60">{job.company}</p>
+              </div>
+              <p className="text-xs sm:text-sm uppercase tracking-widest text-[#D7E2EA]/40">
+                {job.period}
+              </p>
             </div>
-            <p className="text-xs sm:text-sm uppercase tracking-widest text-[#D7E2EA]/40">May 2026</p>
-          </div>
-          <ul className="flex flex-col gap-3">
-            {responsibilities.map((point) => (
-              <li key={point} className="flex gap-3 text-sm sm:text-base font-light leading-relaxed text-[#D7E2EA]/70">
-                <span className="text-[#D7E2EA]/40">—</span>
-                {point}
-              </li>
-            ))}
-          </ul>
-        </FadeIn>
+            <ul className="flex flex-col gap-3">
+              {job.points.map((point) => (
+                <li
+                  key={point}
+                  className="flex gap-3 text-sm sm:text-base font-light leading-relaxed text-[#D7E2EA]/70"
+                >
+                  <span className="text-[#D7E2EA]/40">—</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+        ))}
       </div>
     </section>
   );
