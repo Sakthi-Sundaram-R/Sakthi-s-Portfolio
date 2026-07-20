@@ -27,7 +27,13 @@ export function ContactButton() {
   );
 }
 
-export function LiveProjectButton({ href }: { href: string }) {
+export function LiveProjectButton({
+  href,
+  label = 'Live Project',
+}: {
+  href: string;
+  label?: string;
+}) {
   return (
     <a
       href={href}
@@ -43,7 +49,7 @@ export function LiveProjectButton({ href }: { href: string }) {
         focus:outline-none
       "
     >
-      Live Project
+      {label}
     </a>
   );
 }

@@ -4,7 +4,19 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { LiveProjectButton } from '@/components/Buttons';
 
-const projects = [
+type Project = {
+  number: string;
+  name: string;
+  category: string;
+  status: string;
+  description: string;
+  tags: string[];
+  href: string;
+  /** Overrides the default "Live Project" button label. */
+  linkLabel?: string;
+};
+
+const projects: Project[] = [
   {
     number: '01',
     name: 'Sleep-Scribe',
@@ -35,9 +47,20 @@ const projects = [
     tags: ['HTML5', 'CSS3', 'Vanilla JavaScript', 'WhatsApp API'],
     href: 'https://n-1729.vercel.app/',
   },
+  {
+    number: '04',
+    name: 'Veriform',
+    category: 'Infrastructure · Security Research',
+    status: 'Live on Sepolia',
+    description:
+      'Verifiable AI agents you don’t have to trust. Each agent runs inside a hardware-secured Intel TDX enclave and issues a cryptographic receipt binding every decision to its unaltered code. Anyone — a person or a smart contract — can verify a decision in seconds, and forged or tampered outputs are rejected instantly.',
+    tags: ['Python', 'Intel TDX', 'React', 'Solidity'],
+    href: 'https://github.com/Sakthi-Sundaram-R/Veriform',
+    linkLabel: 'View on GitHub',
+  },
 ];
 
-function ProjectCard({ project, index }: { project: (typeof projects)[0]; index: number }) {
+function ProjectCard({ project, index }: { project: Project; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -80,7 +103,7 @@ function ProjectCard({ project, index }: { project: (typeof projects)[0]; index:
               </h3>
             </div>
           </div>
-          <LiveProjectButton href={project.href} />
+          <LiveProjectButton href={project.href} label={project.linkLabel} />
         </div>
 
         {/* Description */}
@@ -115,7 +138,7 @@ export function ProjectsSection() {
       </div>
 
       {/* Cards Stack */}
-      <div className="max-w-7xl mx-auto pb-[20vh] md:pb-0 md:h-[220vh] relative">
+      <div className="max-w-7xl mx-auto pb-[20vh] md:pb-0 md:h-[290vh] relative">
         {projects.map((project, idx) => (
           <ProjectCard key={project.number} project={project} index={idx} />
         ))}
