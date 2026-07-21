@@ -11,6 +11,7 @@ node_modules
 .next/
 .DS_Store
 .vercel
+tsconfig.tsbuildinfo
 
 # Local tooling config
 .claude/

@@ -190,6 +190,54 @@ main {
   overflow-x: clip;
 }
 
+/* ============================================================
+   Hero avatar — cursor-tracking eyes
+   Sprites and geometry come from scripts/generate-eye-sprites.mjs
+   ============================================================ */
+
+.hero-avatar {
+  position: relative;
+  /* Gives the head-turn tilt somewhere to happen. */
+  perspective: 900px;
+}
+
+.hero-avatar-tilt {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 320ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
+}
+
+/* Eye socket: clips the iris so that at full travel it slides under the lid
+   instead of running onto the skin. The soft-edged mask keeps the clip from
+   showing as a hard arc. */
+.hero-eye {
+  position: absolute;
+  overflow: hidden;
+  -webkit-mask-image: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    #000 78%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 78%, transparent 100%);
+}
+
+.hero-eye img {
+  position: absolute;
+  transition: transform 220ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
+}
+
+/* No pointer to follow, or motion turned down: leave the avatar exactly as
+   rendered. */
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .hero-avatar-tilt,
+  .hero-eye img {
+    transition: none;
+    transform: none !important;
+  }
+}
+
 /* ---------- Custom cursor ---------- */
 @media (pointer: fine) {
   html.has-custom-cursor,
@@ -298,13 +346,14 @@ main {
 }
 
 /* ============================================================
-   Certifications — cinematic 3D gallery
+   Certifications — cinematic 3D gallery (desktop) +
+   horizontal card track (mobile).
    Scoped to .cert-* / .gallery-* so the site theme is untouched.
    ============================================================ */
 
 .cert-gallery-section {
   position: relative;
-  background: #0C0C0C;
+  background: #0c0c0c;
   color: #d7e2ea;
 }
 
@@ -319,6 +368,7 @@ main {
 
 .cert-gallery-section--mobile {
   padding: 72px 20px 80px;
+  overflow: hidden;
 }
 
 /* --- Heading --- */
@@ -336,12 +386,8 @@ main {
 .cert-gallery-section--mobile .cert-gallery-header {
   position: static;
   transform: none;
+  width: auto;
   margin-bottom: 40px;
-}
-
-/* The carousel has its own "swipe to explore" hint below it */
-.cert-gallery-section--mobile .section-subtitle {
-  display: none;
 }
 
 /* Sized to sit alongside the other section headings without crowding the 3D stage */
@@ -357,17 +403,51 @@ main {
   margin-top: 12px;
 }
 
-/* --- Floating label attached to each frame --- */
-.cert-label {
+/* --- Caption for the focused certificate --- */
+/* One element for the whole stage, in plain DOM below the frames: two
+   captions can never overlap, and the text is never scaled by perspective,
+   so it stays crisp at any depth. The slot owns the position and the
+   centring, which leaves the caption's own transform free for the
+   scroll-driven travel. */
+.cert-caption-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 72px;
+  z-index: 12;
+  display: flex;
+  justify-content: center;
+  padding-inline: 24px;
+  pointer-events: none;
+}
+
+.cert-caption {
+  pointer-events: auto;
+  width: max-content;
+  min-width: 280px;
+  max-width: min(520px, 100%);
   background: rgba(12, 12, 12, 0.85);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(215, 226, 234, 0.3);
   border-radius: 14px;
   padding: 16px 20px;
-  min-width: 260px;
   text-align: center;
   color: #d7e2ea;
-  transition: opacity 0.5s ease, transform 0.4s ease;
+  will-change: transform, opacity;
+}
+
+/* Short viewports have far less room under the frame — tighten up. */
+@media (max-height: 720px) {
+  .cert-caption-slot {
+    bottom: 24px;
+  }
+  .cert-caption {
+    padding: 12px 16px;
+  }
+  /* The caption needs the whole strip on a short stage. */
+  .gallery-scroll-hint {
+    display: none;
+  }
 }
 
 .cert-label-type {
@@ -462,7 +542,7 @@ main {
 /* --- Scroll hint --- */
 .gallery-scroll-hint {
   position: absolute;
-  bottom: 32px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
@@ -487,57 +567,174 @@ main {
   }
 }
 
-/* --- Mobile card stack --- */
-/* Horizontal snap carousel — one certificate per swipe */
-.cert-mobile-track {
-  display: flex;
-  gap: 16px;
+/* ------------------------------------------------------------
+   Mobile card track — the 3D gallery is far too heavy for
+   phones, so the same certificates become a snap carousel.
+   ------------------------------------------------------------ */
+
+/* Bleeds to the section edges so cards can scroll flush past the padding. */
+.cert-track-wrapper {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  /* Bleed to the section edges so cards can sit flush while scrolling */
-  margin: 0 -20px;
-  padding: 4px 20px 8px;
+  scroll-padding-left: 20px;
+  margin-inline: -20px;
+  padding: 4px 20px 12px;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  overscroll-behavior-x: contain;
 }
 
-.cert-mobile-track::-webkit-scrollbar {
+.cert-track-wrapper::-webkit-scrollbar {
   display: none;
 }
 
-.cert-mobile-card {
-  flex: 0 0 85%;
-  scroll-snap-align: center;
+.cert-track {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  /* Keeps the last card from sitting flush against the viewport edge. */
+  padding-right: 20px;
+}
+
+.cert-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 min(300px, 82vw);
+  scroll-snap-align: start;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(215, 226, 234, 0.25);
-  border-radius: 18px;
-  padding: 16px;
-  text-align: center;
+  border: 1px solid rgba(41, 197, 246, 0.22);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: left;
+  overflow: hidden;
 }
 
-.cert-mobile-hint {
-  margin-top: 18px;
-  text-align: center;
-  font-size: 11px;
-  letter-spacing: 0.18em;
+.cert-card--featured {
+  border-color: rgba(41, 197, 246, 0.45);
+}
+
+.cert-card-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  background: #29c5f6;
+  color: #0c0c0c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(215, 226, 234, 0.45);
+  padding: 4px 12px;
+  border-radius: 6px;
 }
 
-.cert-mobile-thumb {
+.cert-card-thumb {
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(215, 226, 234, 0.2);
+  border: 1px solid rgba(215, 226, 234, 0.18);
   cursor: pointer;
+}
+
+.cert-card-pill {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-kanit), 'Kanit', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #29c5f6;
+  background: rgba(41, 197, 246, 0.13);
+  border: 1px solid rgba(41, 197, 246, 0.38);
+  border-radius: 20px;
+  padding: 4px 14px;
+  margin-bottom: 12px;
+}
+
+.cert-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #d7e2ea;
+  margin-bottom: 6px;
+}
+
+.cert-card-issuer {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(215, 226, 234, 0.75);
+  margin-bottom: 8px;
+}
+
+.cert-card-rank {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #29c5f6;
+  margin-bottom: 8px;
+}
+
+.cert-card-date {
+  font-family: var(--font-kanit), 'Kanit', sans-serif;
+  font-size: 12px;
+  color: rgba(215, 226, 234, 0.5);
+  /* Pushes the buttons to the bottom so cards in a row line up. */
+  margin-bottom: auto;
+  padding-bottom: 14px;
+}
+
+.cert-card-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.cert-card-buttons button,
+.cert-card-buttons a {
+  background: rgba(41, 197, 246, 0.12);
+  border: 1px solid rgba(41, 197, 246, 0.3);
+  color: #29c5f6;
+  padding: 8px 18px;
+  border-radius: 40px;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.cert-card-buttons button:hover,
+.cert-card-buttons a:hover {
+  background: rgba(41, 197, 246, 0.25);
+}
+
+.cert-swipe-hint {
+  margin-top: 28px;
+  text-align: center;
+  font-family: var(--font-kanit), 'Kanit', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(215, 226, 234, 0.6);
+  animation: cert-pulse-hint 2s ease-in-out infinite;
+}
+
+@keyframes cert-pulse-hint {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* --- Lightbox --- */
@@ -590,3 +787,5 @@ main {
   cursor: pointer;
   font-size: 14px;
 }
+
+

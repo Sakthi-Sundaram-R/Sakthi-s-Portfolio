@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, useTexture } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Certificate } from './certData';
 
@@ -14,30 +14,25 @@ import type { Certificate } from './certData';
 const FRAME = '#D7E2EA';
 const ACCENT = '#29C5F6';
 
-/** Longest edge of a certificate plane, in world units. */
-const MAX_EDGE = 1.9;
+/**
+ * Bounding box a certificate is fitted into, in world units. Height is capped
+ * well below width so that portrait and landscape certificates finish at the
+ * same height — that keeps the bottom edge of every frame at a predictable
+ * place on screen, leaving clear room for the caption beneath the stage.
+ */
+const MAX_W = 1.9;
+const MAX_H = 1.05;
 const FRAME_INSET = 0.16;
 
 type CertFrameProps = {
   cert: Certificate;
   index: number;
   position: [number, number, number];
-  rotationY: number;
   active: boolean;
-  /** Normalised pointer position, shared across the scene. */
-  pointer: React.RefObject<{ x: number; y: number }>;
   onView: (cert: Certificate) => void;
 };
 
-export function CertFrame({
-  cert,
-  index,
-  position,
-  rotationY,
-  active,
-  pointer,
-  onView,
-}: CertFrameProps) {
+export function CertFrame({ cert, index, position, active, onView }: CertFrameProps) {
   const groupRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.MeshBasicMaterial>(null);
   const borderRef = useRef<THREE.MeshStandardMaterial>(null);
@@ -72,10 +67,12 @@ export function CertFrame({
     return new THREE.CanvasTexture(canvas);
   }, []);
 
-  // Size the plane from the texture's real aspect ratio so nothing is squashed.
+  // Fit the plane inside the box using the texture's real aspect ratio, so
+  // nothing is squashed and nothing exceeds the height budget.
   const image = texture.image as { width: number; height: number } | undefined;
   const aspect = image && image.height ? image.width / image.height : 4 / 3;
-  const [w, h] = aspect >= 1 ? [MAX_EDGE, MAX_EDGE / aspect] : [MAX_EDGE * aspect, MAX_EDGE];
+  const fit = Math.min(MAX_W / aspect, MAX_H);
+  const [w, h] = [fit * aspect, fit];
 
   useFrame((state) => {
     const group = groupRef.current;
@@ -83,13 +80,9 @@ export function CertFrame({
 
     const t = state.clock.elapsedTime;
 
-    // Gentle idle float and rock, offset per card so they drift out of sync.
+    // Gentle idle float, offset per card so they drift out of sync. The frame
+    // is never rotated — every certificate stays square to the camera.
     group.position.y = position[1] + Math.sin(t * 0.6 + index) * 0.05;
-    group.rotation.z = Math.sin(t * 0.5 + index) * 0.008;
-
-    // Subtle parallax tilt toward the pointer, only while this card is active.
-    const targetY = rotationY + (active ? (pointer.current?.x ?? 0) * 0.12 : 0);
-    group.rotation.y = THREE.MathUtils.lerp(group.rotation.y, targetY, 0.05);
 
     // Scale, glow and rim light all ease toward the active state.
     const targetScale = active ? 1.05 : 1;
@@ -122,7 +115,7 @@ export function CertFrame({
   });
 
   return (
-    <group ref={groupRef} position={position} rotation={[0, rotationY, 0]}>
+    <group ref={groupRef} position={position}>
       {/* Rim light that switches on as the camera arrives */}
       <pointLight ref={lightRef} color={ACCENT} intensity={0} distance={6} position={[0, 0, 1.2]} />
 
@@ -153,8 +146,16 @@ export function CertFrame({
         />
       </mesh>
 
-      {/* Layer 3 — the certificate itself */}
-      <mesh name="cert-image" position={[0, 0, 0.005]}>
+      {/* Layer 3 — the certificate itself. Clicking it opens the lightbox;
+          the caption below the stage carries the same action as a button. */}
+      <mesh
+        name="cert-image"
+        position={[0, 0, 0.005]}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (active) onView(cert);
+        }}
+      >
         <planeGeometry args={[w, h]} />
         {/* Largely self-lit: the accent rim lights would otherwise tint the
             certificate magenta and make it unreadable. The frame still
@@ -185,32 +186,6 @@ export function CertFrame({
         />
       </mesh>
 
-      <Html position={[0, -h / 2 - 0.65, 0]} center distanceFactor={6} zIndexRange={[20, 0]}>
-        <div
-          className="cert-label"
-          style={{
-            opacity: active ? 1 : 0,
-            transform: active ? 'translateY(0)' : 'translateY(10px)',
-            pointerEvents: active ? 'auto' : 'none',
-          }}
-        >
-          <span className="cert-label-type">{cert.type}</span>
-          <h3 className="cert-label-title">{cert.name}</h3>
-          <p className="cert-label-issuer">{cert.issuer}</p>
-          <p className="cert-label-date">{cert.date}</p>
-          {cert.rank && <span className="cert-label-rank">🏆 {cert.rank}</span>}
-          <div className="cert-label-buttons">
-            <button type="button" onClick={() => onView(cert)}>
-              View Full
-            </button>
-            {cert.link && (
-              <a href={cert.link} target="_blank" rel="noopener noreferrer">
-                Verify ↗
-              </a>
-            )}
-          </div>
-        </div>
-      </Html>
     </group>
   );
 }

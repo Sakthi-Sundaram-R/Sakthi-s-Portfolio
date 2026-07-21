@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useMotionValueEvent, useScroll } from 'framer-motion';
+import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import { GalleryLights } from './GalleryLights';
-import { GalleryScene } from './GalleryScene';
-import { MobileCertGrid } from './MobileCertGrid';
+import { GalleryScene, certLateral } from './GalleryScene';
+import { CertCard } from './CertCard';
 import { CertLightbox } from './CertLightbox';
 import { certifications, type Certificate } from './certData';
 
@@ -40,6 +40,53 @@ export function CertificationsSection() {
     progressRef.current = v;
   });
 
+  /**
+   * Caption travel, keyed off the same scroll progress that drives the camera
+   * so the text moves in lockstep with the certificate rather than sitting
+   * still while the stage pans underneath it.
+   *
+   * Per leg: the caption rides out in whichever direction the world appears to
+   * move (opposite the camera's pan), blanks across the midpoint, then rides
+   * back in from the far side — so the hand-off reads as the old caption
+   * leaving with its certificate and the new one arriving with the next. The
+   * jump between the two sides happens while opacity is 0, so it is unseen,
+   * and only ever one caption element exists.
+   */
+  const { travelStops, travelX, travelOpacity } = useMemo(() => {
+    const n = certifications.length;
+    if (n < 2) return { travelStops: [0, 1], travelX: [0, 0], travelOpacity: [1, 1] };
+
+    const SLIDE = 64; // px the caption rides out to before handing over
+    const legs = n - 1;
+    const legLength = 1 / legs;
+    const blank = legLength * 0.18; // half-width of the invisible hand-off window
+
+    const stops: number[] = [];
+    const xs: number[] = [];
+    const opacities: number[] = [];
+
+    for (let i = 0; i < legs; i++) {
+      const from = i * legLength;
+      const mid = from + legLength / 2;
+      // Camera pans toward the next certificate, so the scene — and the
+      // caption with it — appears to travel the other way.
+      const direction = Math.sign(certLateral(i + 1) - certLateral(i)) || 1;
+
+      stops.push(from, mid - blank, mid + blank);
+      xs.push(0, -SLIDE * direction, SLIDE * direction);
+      opacities.push(1, 0, 0);
+    }
+
+    stops.push(1);
+    xs.push(0);
+    opacities.push(1);
+
+    return { travelStops: stops, travelX: xs, travelOpacity: opacities };
+  }, []);
+
+  const captionX = useTransform(scrollYProgress, travelStops, travelX);
+  const captionOpacity = useTransform(scrollYProgress, travelStops, travelOpacity);
+
   const header = (
     <div className="cert-gallery-header">
       <h2 className="hero-heading font-black uppercase leading-none tracking-tight">
@@ -69,6 +116,39 @@ export function CertificationsSection() {
         </Suspense>
       </Canvas>
 
+      {/* Caption for whichever certificate currently holds focus.
+          Deliberately one plain-DOM element rather than a drei <Html> per
+          frame: only one caption can ever exist, so labels cannot overlap
+          during a hand-off, and the text is never scaled by perspective,
+          so it stays pixel-crisp. */}
+      {certifications[activeCert] && (
+        <div className="cert-caption-slot">
+          <motion.div className="cert-caption" style={{ x: captionX, opacity: captionOpacity }}>
+            <span className="cert-label-type">{certifications[activeCert].type}</span>
+            <h3 className="cert-label-title">{certifications[activeCert].name}</h3>
+            <p className="cert-label-issuer">{certifications[activeCert].issuer}</p>
+            <p className="cert-label-date">{certifications[activeCert].date}</p>
+            {certifications[activeCert].rank && (
+              <span className="cert-label-rank">🏆 {certifications[activeCert].rank}</span>
+            )}
+            <div className="cert-label-buttons">
+              <button type="button" onClick={() => setLightbox(certifications[activeCert])}>
+                View Full
+              </button>
+              {certifications[activeCert].link && (
+                <a
+                  href={certifications[activeCert].link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Verify ↗
+                </a>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Progress dots */}
       <div className="gallery-progress">
         {certifications.map((cert, i) => (
@@ -87,7 +167,16 @@ export function CertificationsSection() {
   const mobile = (
     <>
       {header}
-      <MobileCertGrid certs={certifications} onView={setLightbox} />
+
+      <div className="cert-track-wrapper">
+        <div className="cert-track">
+          {certifications.map((cert, i) => (
+            <CertCard key={cert.name} cert={cert} index={i} onView={setLightbox} />
+          ))}
+        </div>
+      </div>
+
+      <p className="cert-swipe-hint">← Swipe to explore →</p>
     </>
   );
 

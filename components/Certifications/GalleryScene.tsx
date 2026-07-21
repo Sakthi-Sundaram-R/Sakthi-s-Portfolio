@@ -7,48 +7,48 @@ import { CertFrame } from './CertFrame';
 import type { Certificate } from './certData';
 
 /**
- * Gentle S-curve through the gallery. Tuned for four certificates — the
- * camera drifts left/right as it travels down -Z so each frame swings past
- * the lens instead of arriving head-on.
- */
-/**
- * Layout is derived from the certificate count rather than hand-listed, so
- * adding a certificate can't desync the cards from the camera path (it
- * previously meant editing two magic arrays in lockstep).
+ * Straight-on gallery. Every certificate faces the lens square, and the camera
+ * parks directly in front of one at a time — no tilted frames swinging past.
  *
- * Cards march down -Z at a fixed spacing, alternating left/right of the
- * flight line and angled back toward it. The camera travels linearly in Z —
- * giving every card an equal share of the scroll — while its X sways on a
- * cosine timed to the spacing, so it is always on the *opposite* side of
- * whichever card is coming into focus.
+ * Cards march down -Z at a fixed spacing and step side to side on a fixed
+ * pattern, so consecutive certificates sit off in the periphery while the
+ * focused one is dead centre. Each card's camera waypoint is derived from its
+ * own position (straight back along +Z, level with the frame), so the layout
+ * and the flight path can never drift apart.
  */
-const CERT_SPACING = 4.5;
-const CERT_X = 1.5;
-const CERT_TILT = 0.32;
-const START_Z = 3.5;
-const CAMERA_X = 1.4;
+const CERT_SPACING = 4;
+/**
+ * Frames sit slightly above the camera's eye line so the lower third of the
+ * stage stays clear for the caption.
+ */
+const CERT_Y = 0.1;
+/** Lateral offsets, cycled. Starts centred, then alternates outward. */
+export const CERT_X_PATTERN = [0, 4, -4, 3, -3];
 
-const certSide = (i: number) => (i % 2 === 0 ? 1 : -1);
+/** Where certificate `i` sits across the stage. Shared with the caption so it
+ *  can travel in the same direction the camera pans. */
+export const certLateral = (i: number) => CERT_X_PATTERN[i % CERT_X_PATTERN.length];
+/** How far in front of a certificate the camera sits when focused. */
+const VIEW_DISTANCE = 2.5;
 
 function buildLayout(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    position: [
-      CERT_X * certSide(i),
-      i % 2 === 0 ? 0.15 : -0.3,
-      -CERT_SPACING * i,
-    ] as [number, number, number],
-    rotationY: -CERT_TILT * certSide(i),
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const x = certLateral(i);
+    const z = -CERT_SPACING * i;
+    return {
+      position: [x, CERT_Y, z] as [number, number, number],
+      /** Camera sits back along +Z, level with the frame and looking at it. */
+      camera: [x, 0, z + VIEW_DISTANCE] as [number, number, number],
+      lookAt: [x, 0, z] as [number, number, number],
+    };
+  });
 }
 
 /**
- * A card takes focus while it sits roughly this far *ahead* of the camera.
- * Keying off "ahead" rather than raw distance matters: when the camera is
- * level with a card it is edge-on and unreadable, so focus is centred on the
- * approach instead.
+ * Eases the travel between two waypoints so the camera settles on each
+ * certificate and holds it, rather than sliding through at constant speed.
  */
-const FOCUS_LEAD = 3.4;
-const FOCUS_TOLERANCE = 2.4;
+const smootherstep = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 
 type GallerySceneProps = {
   certificates: Certificate[];
@@ -65,54 +65,45 @@ export function GalleryScene({
   onView,
 }: GallerySceneProps) {
   const { camera } = useThree();
-  const pointer = useRef({ x: 0, y: 0 });
 
   const layout = useMemo(() => buildLayout(certificates.length), [certificates.length]);
 
-  // Travel ends just past the last card's focus point so the final
-  // certificate still holds focus at the end of the scroll.
-  const { travel, swayPeriod, swayPhase } = useMemo(() => {
-    const lastZ = -CERT_SPACING * Math.max(certificates.length - 1, 0);
-    const endZ = lastZ + FOCUS_LEAD - 1;
-    const distance = START_Z - endZ;
-    return {
-      travel: distance,
-      swayPeriod: CERT_SPACING / distance,
-      // Anchor the sway to the moment the camera draws level with the first
-      // card. Phasing it to the focus point instead left the camera on the
-      // same side as the card it was passing, and it flew straight through.
-      swayPhase: START_Z / distance,
-    };
-  }, [certificates.length]);
+  // Reused across frames so the loop allocates nothing.
+  const target = useRef(new THREE.Vector3());
 
   // Focus changes a handful of times per scroll, so committing it to state is
   // cheap and keeps the frames declarative.
-  const [active, setActive] = useState(-1);
+  const [active, setActive] = useState(0);
 
-  useFrame((state) => {
-    pointer.current.x = state.pointer.x;
-    pointer.current.y = state.pointer.y;
+  useFrame(() => {
+    if (layout.length === 0) return;
 
-    // Walk the camera along the path according to scroll progress.
     const p = THREE.MathUtils.clamp(progressRef.current ?? 0, 0, 1);
 
-    camera.position.z = START_Z - p * travel;
-    camera.position.x = -CAMERA_X * Math.cos((Math.PI * (p - swayPhase)) / swayPeriod);
-    camera.position.y = 0.25 + 0.15 * Math.sin(p * Math.PI * 2);
-    camera.lookAt(0, 0, camera.position.z - 3);
+    // Scroll maps onto the waypoint list: whole part picks the leg, the
+    // fraction eases the camera along it.
+    const t = p * (layout.length - 1);
+    const leg = Math.min(Math.floor(t), layout.length - 2);
+    const f = smootherstep(THREE.MathUtils.clamp(t - leg, 0, 1));
 
-    // Whichever card sits closest to the ideal lead distance wins focus.
-    let nearest = -1;
-    let bestScore = FOCUS_TOLERANCE;
-    for (let idx = 0; idx < layout.length; idx++) {
-      const ahead = camera.position.z - layout[idx].position[2];
-      const score = Math.abs(ahead - FOCUS_LEAD);
-      if (score < bestScore) {
-        bestScore = score;
-        nearest = idx;
-      }
-    }
+    const from = layout[leg];
+    const to = layout[leg + 1] ?? from;
 
+    camera.position.set(
+      THREE.MathUtils.lerp(from.camera[0], to.camera[0], f),
+      THREE.MathUtils.lerp(from.camera[1], to.camera[1], f),
+      THREE.MathUtils.lerp(from.camera[2], to.camera[2], f)
+    );
+
+    target.current.set(
+      THREE.MathUtils.lerp(from.lookAt[0], to.lookAt[0], f),
+      THREE.MathUtils.lerp(from.lookAt[1], to.lookAt[1], f),
+      THREE.MathUtils.lerp(from.lookAt[2], to.lookAt[2], f)
+    );
+    camera.lookAt(target.current);
+
+    // Whichever waypoint the camera is closest to holds focus.
+    const nearest = Math.round(t);
     setActive((prev) => {
       if (prev === nearest) return prev;
       onActiveChange(nearest);
@@ -122,21 +113,16 @@ export function GalleryScene({
 
   return (
     <>
-      {certificates.map((cert, idx) => {
-        const place = layout[idx];
-        return (
-          <CertFrame
-            key={cert.name}
-            cert={cert}
-            index={idx}
-            position={place.position}
-            rotationY={place.rotationY}
-            active={active === idx}
-            pointer={pointer}
-            onView={onView}
-          />
-        );
-      })}
+      {certificates.map((cert, idx) => (
+        <CertFrame
+          key={cert.name}
+          cert={cert}
+          index={idx}
+          position={layout[idx].position}
+          active={active === idx}
+          onView={onView}
+        />
+      ))}
     </>
   );
 }

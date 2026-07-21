@@ -38,10 +38,10 @@ export function CertLightbox({ cert, onClose }: { cert: Certificate; onClose: ()
           />
         </div>
         <div className="cert-lightbox-meta">
-          <span className="cert-label-type">{cert.type}</span>
-          <h3 className="cert-label-title">{cert.name}</h3>
-          <p className="cert-label-issuer">{cert.issuer}</p>
-          <p className="cert-label-date">{cert.date}</p>
+          <span className="cert-card-pill">{cert.type}</span>
+          <h3 className="cert-card-title">{cert.name}</h3>
+          <p className="cert-card-issuer">{cert.issuer}</p>
+          <p className="cert-card-date">{cert.date}</p>
           <p className="cert-lightbox-detail">{cert.detail}</p>
         </div>
       </div>

@@ -28,7 +28,7 @@ export const certifications: Certificate[] = [
     date: 'June 26, 2026',
     detail: 'Top 8 of 62 builders · Forge Score 2,080 · for building & shipping Sleep-Scribe',
     image: '/certs/conesta-forge.jpg',
-    type: 'Featured · Build Sprint',
+    type: 'Build Sprint',
     rank: 'Top 8 of 62 · Forge Score 2,080',
     featured: true,
   },

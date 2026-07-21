@@ -1,9 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import { FadeIn } from '@/components/FadeIn';
 import { ContactButton } from '@/components/Buttons';
-import { Hero3D } from '@/components/Hero3D';
+import { HeroAvatar } from '@/components/Hero/HeroAvatar';
 import { Magnet } from '@/components/Magnet';
 
 export function HeroSection() {
@@ -63,9 +62,6 @@ export function HeroSection() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center relative w-full">
-        {/* 3D Background Element */}
-        <Hero3D />
-
         {/* Hero Heading */}
         <FadeIn delay={0.15} y={40} className="relative z-0 w-full text-center px-4 mt-6 sm:mt-4">
           <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[clamp(2.5rem,10vw,180px)]">
@@ -85,14 +81,7 @@ export function HeroSection() {
             activeTransition="transform 0.3s ease-out"
             inactiveTransition="transform 0.6s ease-in-out"
           >
-            <Image
-              src="/avatar.png"
-              alt="Sakthi's 3D avatar"
-              width={811}
-              height={1023}
-              priority
-              className="w-[340px] sm:w-[360px] md:w-[380px] lg:w-[430px] h-auto select-none pointer-events-none drop-shadow-[0_0_40px_rgba(182,0,168,0.25)]"
-            />
+            <HeroAvatar className="w-[340px] sm:w-[360px] md:w-[380px] lg:w-[430px] pointer-events-none drop-shadow-[0_0_40px_rgba(182,0,168,0.25)]" />
           </Magnet>
         </FadeIn>
 
