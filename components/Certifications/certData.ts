@@ -46,7 +46,7 @@ export const certifications: Certificate[] = [
     date: 'May 30, 2026',
     detail: 'Verify: coursera.org/verify/IP3RVZ0WK8TB',
     link: 'https://coursera.org/verify/IP3RVZ0WK8TB',
-    image: '/certs/coursera-ml-with-python.png',
+    image: '/certs/coursera-ml-with-python.jpg',
     type: 'Certification',
   },
   {

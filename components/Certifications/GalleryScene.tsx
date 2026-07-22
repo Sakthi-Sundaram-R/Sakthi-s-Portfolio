@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CertFrame } from './CertFrame';
+import { CERT_SPACING, CERT_Y, VIEW_DISTANCE, certLateral } from './certLayout';
 import type { Certificate } from './certData';
 
 /**
@@ -16,20 +17,6 @@ import type { Certificate } from './certData';
  * own position (straight back along +Z, level with the frame), so the layout
  * and the flight path can never drift apart.
  */
-const CERT_SPACING = 4;
-/**
- * Frames sit slightly above the camera's eye line so the lower third of the
- * stage stays clear for the caption.
- */
-const CERT_Y = 0.1;
-/** Lateral offsets, cycled. Starts centred, then alternates outward. */
-export const CERT_X_PATTERN = [0, 4, -4, 3, -3];
-
-/** Where certificate `i` sits across the stage. Shared with the caption so it
- *  can travel in the same direction the camera pans. */
-export const certLateral = (i: number) => CERT_X_PATTERN[i % CERT_X_PATTERN.length];
-/** How far in front of a certificate the camera sits when focused. */
-const VIEW_DISTANCE = 2.5;
 
 function buildLayout(count: number) {
   return Array.from({ length: count }, (_, i) => {

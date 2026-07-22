@@ -60,7 +60,10 @@ first (`winget install Gyan.FFmpeg` on Windows).
 If the output is too large, raise `-crf` until it comes back down; all-intra
 encoding inflates high-detail footage.
 
-### 3. Nothing else
+### 3. Switch it on
+
+Set `HAS_SCRUB_VIDEO = true` in `components/Hero/HeroAvatar.tsx`. That is the
+only code change — until then the hero uses the sprite-based eye tracking.
 
 `AvatarScrub` already maps pointer X straight onto `currentTime` with no
 smoothing, throttles seeks while one is in flight or the delta is sub-frame,

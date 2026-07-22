@@ -172,17 +172,19 @@ export function CertFrame({ cert, index, position, active, onView }: CertFramePr
         />
       </mesh>
 
-      {/* Layer 4 — museum glass */}
+      {/* Layer 4 — museum glass. Deliberately a flat additive sheen rather
+          than meshPhysicalMaterial: `transmission` makes three.js re-render
+          the scene into a backbuffer once per transmissive mesh per frame,
+          which with five frames on screen was the single most expensive
+          thing in the gallery. This reads near-identically at no cost. */}
       <mesh name="glass" position={[0, 0, 0.02]}>
         <planeGeometry args={[w, h]} />
-        <meshPhysicalMaterial
-          transmission={0.3}
-          roughness={0.05}
-          thickness={0.5}
+        <meshBasicMaterial
           color="#ffffff"
           transparent
-          opacity={0.15}
+          opacity={0.06}
           depthWrite={false}
+          blending={THREE.AdditiveBlending}
         />
       </mesh>
 

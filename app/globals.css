@@ -426,8 +426,10 @@ main {
   width: max-content;
   min-width: 280px;
   max-width: min(520px, 100%);
-  background: rgba(12, 12, 12, 0.85);
-  backdrop-filter: blur(12px);
+  /* No backdrop-filter here on purpose: this sits directly over the WebGL
+     canvas, so blurring what is behind it forces a readback of the 3D layer
+     every frame. At 94% opacity there is nothing to see through anyway. */
+  background: rgba(12, 12, 12, 0.94);
   border: 1px solid rgba(215, 226, 234, 0.3);
   border-radius: 14px;
   padding: 16px 20px;
@@ -603,8 +605,9 @@ main {
   flex-direction: column;
   flex: 0 0 min(300px, 82vw);
   scroll-snap-align: start;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
+  /* Flat fill rather than a backdrop blur — five blurred surfaces inside a
+     scroll container is the classic cause of stuttery swiping on phones. */
+  background: rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(41, 197, 246, 0.22);
   border-radius: 20px;
   padding: 20px;
@@ -743,7 +746,6 @@ main {
   inset: 0;
   z-index: 100;
   background: rgba(12, 12, 12, 0.94);
-  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;

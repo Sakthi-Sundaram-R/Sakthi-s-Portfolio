@@ -73,14 +73,26 @@ export function AvatarEyes({ className }: { className?: string }) {
       }
     };
 
+    // getBoundingClientRect forces layout, so coalesce re-measures onto a
+    // frame instead of running one per scroll event.
+    let queued = false;
+    const queueMeasure = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        measure();
+      });
+    };
+
     measure();
     window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('resize', measure);
-    window.addEventListener('scroll', measure, { passive: true });
+    window.addEventListener('resize', queueMeasure);
+    window.addEventListener('scroll', queueMeasure, { passive: true });
     return () => {
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('resize', measure);
-      window.removeEventListener('scroll', measure);
+      window.removeEventListener('resize', queueMeasure);
+      window.removeEventListener('scroll', queueMeasure);
     };
   }, []);
 
@@ -93,6 +105,8 @@ export function AvatarEyes({ className }: { className?: string }) {
           width={geometry.image.width}
           height={geometry.image.height}
           priority
+          // Never rendered wider than 430px, so don't ship the 811px source.
+          sizes="(max-width: 640px) 340px, 430px"
           className="h-auto w-full select-none"
         />
 

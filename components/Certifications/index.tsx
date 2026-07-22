@@ -1,21 +1,35 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
-import { GalleryLights } from './GalleryLights';
-import { GalleryScene, certLateral } from './GalleryScene';
+import { certLateral } from './certLayout';
 import { CertCard } from './CertCard';
 import { CertLightbox } from './CertLightbox';
 import { certifications, type Certificate } from './certData';
 
 const MOBILE_BREAKPOINT = 768;
 
+/**
+ * three.js + react-three-fiber are ~410KB of JavaScript. Loading them lazily
+ * keeps them off the initial page load entirely, and off phones altogether —
+ * the mobile branch never mounts this.
+ */
+const GalleryCanvas = dynamic(() => import('./GalleryCanvas').then((m) => m.GalleryCanvas), {
+  ssr: false,
+});
+
 export function CertificationsSection() {
   const [lightbox, setLightbox] = useState<Certificate | null>(null);
   const [activeCert, setActiveCert] = useState(0);
   // null until measured, so the server and first client paint agree.
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const [stageNear, setStageNear] = useState(false);
+  // Starts true so that once mounted the canvas sizes itself and paints a
+  // first frame exactly as it always did; the observer below only ever parks
+  // it. If IntersectionObserver never reports, this degrades to the old
+  // always-on behaviour rather than to a blank stage.
+  const [stageVisible, setStageVisible] = useState(true);
 
   const sectionRef = useRef<HTMLElement>(null);
   const progressRef = useRef(0);
@@ -26,6 +40,49 @@ export function CertificationsSection() {
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
   }, []);
+
+  // Two separate concerns, both driven by how near the stage is:
+  //  - `stageNear` mounts the WebGL chunk, and never unmounts it again, so the
+  //    GL context and its textures are created once.
+  //  - `stageVisible` parks the render loop. R3F renders every frame for the
+  //    lifetime of the canvas, so without this the gallery would keep driving
+  //    the GPU the whole time you are anywhere else on the page.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || isMobile !== false) return;
+
+    // Mount straight away if the stage is already in range — covers landing
+    // directly on #certifications, and any environment without observers.
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 600 && rect.bottom > -600) setStageNear(true);
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setStageNear(true);
+      setStageVisible(true);
+      return;
+    }
+
+    const near = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStageNear(true);
+          near.disconnect();
+        }
+      },
+      { rootMargin: '600px 0px' }
+    );
+    const visible = new IntersectionObserver(
+      ([entry]) => setStageVisible(entry.isIntersecting),
+      { rootMargin: '200px 0px' }
+    );
+
+    near.observe(el);
+    visible.observe(el);
+    return () => {
+      near.disconnect();
+      visible.disconnect();
+    };
+  }, [isMobile]);
 
   // The section is 500vh tall with a sticky viewport inside, so scroll
   // progress across it drives the camera exactly like a pinned timeline.
@@ -100,21 +157,15 @@ export function CertificationsSection() {
     <div className="cert-gallery-pin">
       {header}
 
-      <Canvas
-        camera={{ position: [0, 0.5, 4.5], fov: 60 }}
-        gl={{ antialias: true, alpha: true }}
-        style={{ position: 'absolute', inset: 0 }}
-      >
-        <GalleryLights />
-        <Suspense fallback={null}>
-          <GalleryScene
-            certificates={certifications}
-            progressRef={progressRef}
-            onActiveChange={setActiveCert}
-            onView={setLightbox}
-          />
-        </Suspense>
-      </Canvas>
+      {stageNear && (
+        <GalleryCanvas
+          certificates={certifications}
+          progressRef={progressRef}
+          running={stageVisible}
+          onActiveChange={setActiveCert}
+          onView={setLightbox}
+        />
+      )}
 
       {/* Caption for whichever certificate currently holds focus.
           Deliberately one plain-DOM element rather than a drei <Html> per
