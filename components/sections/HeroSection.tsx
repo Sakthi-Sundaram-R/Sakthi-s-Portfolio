@@ -73,7 +73,7 @@ export function HeroSection() {
         <FadeIn
           delay={0.6}
           y={30}
-          className="absolute left-1/2 -translate-x-1/2 z-10 top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0"
+          className="absolute left-1/2 -translate-x-1/2 z-10 bottom-[-15px] sm:bottom-[-30px] md:bottom-[-45px]"
         >
           <Magnet
             padding={150}
@@ -81,7 +81,7 @@ export function HeroSection() {
             activeTransition="transform 0.3s ease-out"
             inactiveTransition="transform 0.6s ease-in-out"
           >
-            <HeroAvatar className="w-[340px] sm:w-[360px] md:w-[380px] lg:w-[430px] pointer-events-none drop-shadow-[0_0_40px_rgba(182,0,168,0.25)]" />
+            <HeroAvatar className="w-[460px] sm:w-[550px] md:w-[640px] lg:w-[740px] drop-shadow-[0_0_50px_rgba(182,0,168,0.35)]" />
           </Magnet>
         </FadeIn>
 
