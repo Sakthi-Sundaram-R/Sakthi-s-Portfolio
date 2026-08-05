@@ -58,6 +58,7 @@ function TechCard({ tech }: { tech: TechIcon }) {
           sizes="44px"
           className="object-contain"
           loading="lazy"
+          unoptimized
         />
       </div>
       <span className="text-xs font-medium uppercase tracking-widest text-[#D7E2EA]/60 transition-colors duration-300 group-hover:text-[#D7E2EA]">

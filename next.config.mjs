@@ -9,6 +9,9 @@ const nextConfig = {
   // wider than 430px. This app is server-rendered on Vercel (no static
   // export), so Next can resize and serve WebP/AVIF instead.
   images: {
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     formats: ['image/avif', 'image/webp'],
     // Optimising remote images means their hosts have to be declared —
     // `unoptimized` previously skipped this check entirely.
